@@ -1,0 +1,51 @@
+import pandas as pd
+import re
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def clean_text(text):
+    if pd.isna(text):
+        return text
+    text = re.sub(r'\s+', ' ', text)  # Replace multiple whitespace with a single space
+    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)  # Remove non-printable characters
+    return text.strip()
+
+# Load the OCR results CSV file
+ocr_results_path = 'path_to_your_ocr_results.csv'
+ocr_results_df = pd.read_csv(ocr_results_path)
+
+# Clean the extracted_text and parsed_text columns
+ocr_results_df['clean_extracted_text'] = ocr_results_df['extracted_text'].apply(clean_text)
+ocr_results_df['clean_parsed_text'] = ocr_results_df['parsed_text'].apply(clean_text)
+
+# Display the cleaned data
+print(ocr_results_df[['image_path', 'entity_name', 'entity_value', 'clean_extracted_text', 'clean_parsed_text']].head())
+# Testing the model
+model.eval()
+predictions, true_labels = [], []
+
+with torch.no_grad():
+    for batch in test_loader:
+        input_ids = batch['input_ids'].to(device)
+        attention_mask = batch['attention_mask'].to(device)
+
+        outputs = model(input_ids, attention_mask=attention_mask)
+        logits = outputs.logits
+        predictions.extend(torch.argmax(logits, dim=1).cpu().numpy())
+        true_labels.extend(batch['labels'].numpy())
+
+# Calculate accuracy and F1 score
+accuracy = accuracy_score(true_labels, predictions)
+print(f'Test Accuracy: {accuracy:.4f}')
+
+# Print classification report
+print(classification_report(true_labels, predictions))
+
+# Confusion matrix
+conf_matrix = confusion_matrix(true_labels, predictions)
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix')
+plt.show()
